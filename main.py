@@ -133,6 +133,79 @@ async def save_post(request: Request):
         await db.commit()
     return make_nexacro_xml_response(create_error_xml(0, "success"))
 
+
+@app.post("/posts/delete")
+async def delete_post(request: Request):
+    if not request.session.get('is_logged_in'):
+        return make_nexacro_xml_response(create_error_xml(-2, "timeout"))
+
+    raw_data = (await request.body()).decode("utf-8")
+    p_id = get_nexacro_value(raw_data, 'postId')
+
+    if not p_id:
+        return make_nexacro_xml_response(create_error_xml(-1, "postId is missing"))
+
+    try:
+        async with aiosqlite.connect(DB_PATH) as db:
+            cursor = await db.execute("DELETE FROM posts WHERE id = ?", (p_id,))
+            await db.commit()
+            
+            if cursor.rowcount == 0:
+                return make_nexacro_xml_response(create_error_xml(-1, "post not found"))
+
+        return make_nexacro_xml_response(create_error_xml(0, "success"))
+    
+    except Exception as e:
+        return make_nexacro_xml_response(create_error_xml(-1, str(e)))
+@app.post("/posts/modify")
+async def modify_post(request: Request):
+    if not request.session.get('is_logged_in'):
+        return make_nexacro_xml_response(create_error_xml(-2, "timeout"))
+
+    raw_data = (await request.body()).decode("utf-8")
+    p_id = get_nexacro_value(raw_data, 'id')
+    p_title = get_nexacro_value(raw_data, 'title')
+    p_content = get_nexacro_value(raw_data, 'content')
+    
+    p_preview = (p_content[:50] + "...") if p_content and len(p_content) > 50 else p_content
+    now = datetime.now()
+    p_date, p_time = now.strftime("%Y-%m-%d"), now.strftime("%H:%M")
+
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await db.execute(
+            "UPDATE posts SET title=?, content=?, preview=?, date=?, time=? WHERE id=?",
+            (p_title, p_content, p_preview, p_date, p_time, p_id)
+        )
+        await db.commit()
+        
+        async with db.execute("SELECT title, content FROM posts WHERE id = ?", (p_id,)) as cursor:
+            row = await cursor.fetchone()
+
+    if row:
+        xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<Root xmlns="http://nexacroplatform.com">
+    <Parameters>
+        <Parameter id="ErrorCode" type="int">0</Parameter>
+        <Parameter id="ErrorMsg" type="string">success</Parameter>
+    </Parameters>
+    <Dataset id="DetailPost">
+        <ColumnInfo>
+            <Column id="title" type="STRING" size="256" />
+            <Column id="content" type="STRING" size="4000" />
+        </ColumnInfo>
+        <Rows>
+            <Row>
+                <Col id="title">{row['title']}</Col>
+                <Col id="content">{row['content']}</Col>
+            </Row>
+        </Rows>
+    </Dataset>
+</Root>"""
+        return make_nexacro_xml_response(xml)
+
+    return make_nexacro_xml_response(create_error_xml(-1, "modify failed"))
+
 @app.post("/posts/read")
 async def read_post(request: Request):
     if not request.session.get('is_logged_in'):

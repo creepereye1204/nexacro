@@ -6,9 +6,11 @@
       <Layout>
         <ImageViewer id="WriteBackGround" taborder="0" left="0%" top="0" height="768" width="1024" image="URL('https://image.fnnews.com/resource/media/image/2022/11/24/202211241422160120_l.png')" stretch="fit"/>
         <GroupBox id="WriteForm" taborder="1" left="18.26%" top="84" height="600" width="650" onlbuttondown="WriteForm_onlbuttondown"/>
-        <TextArea id="ContentForm" taborder="2" left="31.25%" top="280" right="31.25%" height="300" oneditclick="TextArea00_oneditclick" readonly="true"/>
-        <Edit id="TitleForm" taborder="3" left="31.35%" top="184" right="31.35%" height="48" readonly="true"/>
-        <Button id="ReturnButton" taborder="4" text="Return" left="43.55%" top="600" right="43.55%" height="70" onclick="ReturnButton_onclick"/>
+        <TextArea id="ContentForm" taborder="2" left="31.25%" top="280" right="31.25%" height="300" oneditclick="TextArea00_oneditclick" readonly="false"/>
+        <Edit id="TitleForm" taborder="3" left="31.35%" top="184" right="31.35%" height="48" readonly="false"/>
+        <Button id="ReturnButton" taborder="4" text="Return" left="2.34%" top="34" right="84.77%" height="70" onclick="ReturnButton_onclick"/>
+        <Button id="DeleteButton" taborder="5" text="Delete" left="85.16%" top="35" right="2.83%" height="68" onclick="DeleteButton_onclick"/>
+        <Button id="ModifyButton" taborder="6" text="Modify" left="44.04%" top="592" right="43.95%" height="68" onclick="ModifyButton_onclick"/>
       </Layout>
     </Layouts>
     <Objects>
@@ -35,7 +37,14 @@ this.fn_callback = function(id, code, message)
         this.alert(message);
         return;
     }
-    
+    switch(id){
+		case "포스트 삭제":
+			this.go("Base::frm_home.xfdl");
+		break;
+		
+		default:
+		break;
+    }
     
 	
     
@@ -49,7 +58,7 @@ this.frm_post_onload = function(obj:Form, e:nexacro.LoadEventInfo)
 {
 	var postId = application.gv_postId;
     
-    var serviceId = "read_post";
+    var serviceId = "포스트 조회";
     var serviceUrl = SERVER_URL + "/posts/read"; 
     var inDataset  = ""; 
     var outDataset = "DetailPost=DetailPost"; 
@@ -62,6 +71,41 @@ this.frm_post_onload = function(obj:Form, e:nexacro.LoadEventInfo)
 this.ReturnButton_onclick = function(obj:Button, e:nexacro.ClickEventInfo)
 {
 	this.go("Base::frm_home.xfdl");
+}
+
+
+
+this.DeleteButton_onclick = function(obj:Button, e:nexacro.ClickEventInfo)
+{
+	var postId = application.gv_postId;
+    
+    var serviceId = "포스트 삭제";
+    var serviceUrl = SERVER_URL + "/posts/delete"; 
+    var inDataset  = ""; 
+    var outDataset = ""; 
+    var param = "postId=" + nexacro.wrapQuote(postId);
+    var callbacks = "fn_callback";
+
+    this.transaction(serviceId, serviceUrl, inDataset, outDataset, param, callbacks);
+}
+
+
+
+this.ModifyButton_onclick = function(obj:Button, e:nexacro.ClickEventInfo)
+{
+	var postId = application.gv_postId;
+	var title = this.TitleForm.value;
+    var content = this.ContentForm.value;
+    
+    var serviceId = "포스트 수정";
+    var serviceUrl = SERVER_URL + "/posts/modify"; 
+    var inDataset  = ""; 
+    var outDataset = "DetailPost=DetailPost"; 
+    var param = "id="+nexacro.wrapQuote(postId)+"title=" + nexacro.wrapQuote(title) 
+              + " content=" + nexacro.wrapQuote(content);
+    var callbacks = "fn_callback";
+
+    this.transaction(serviceId, serviceUrl, inDataset, outDataset, param, callbacks);
 }
 ]]></Script>
   </Form>
