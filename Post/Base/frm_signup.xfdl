@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FDL version="1.5">
+  <TypeDefinition url="..\default_typedef.xml"/>
+  <Form id="frm_login" left="0" top="0" width="1024" height="768" titletext="New Form" style="color:#46413dff;">
+    <Layouts>
+      <Layout>
+        <ImageViewer id="LoginBackground" taborder="0" left="0%" top="0" height="768" image="URL('https://compphoto.incruit.com/2022/05/1_2022524141144.jpg')" stretch="fit" width="1024" style="font:14 Dotum;" onclick="LoginBackground_onclick"/>
+        <Edit id="IdEdit" taborder="1" left="30.47%" top="265" height="80" width="400" displaynulltext="아이디 입력" style="font:14 Dotum;"/>
+        <Edit id="PasswordEdit" taborder="2" left="30.47%" top="375" height="80" width="400" displaynulltext="비밀번호 입력" oneditclick="PasswordEdit_oneditclick" style="font:14 Dotum;" password="true"/>
+        <Button id="SignUpButton" taborder="3" text="가입" left="30.47%" top="485" height="80" width="400" style="font:14 Dotum;" onclick="SignUpButton_onclick"/>
+        <Static id="LoginStatic" taborder="4" text="로그인" left="30.66%" top="573" right="60.55%" height="26" style="color:#c0c0c0ff;font:14 Dotum;" onclick="LoginStatic_onclick"/>
+      </Layout>
+    </Layouts>
+    <Script type="xscript5.0"><![CDATA[const SERVER_URL = "http://127.0.0.1:8000";
+
+
+this.fn_callack = function(id,code,message)
+{
+	if(code<0){
+		alert(id + " 오류 [" + code+"]" + message);
+		return;
+	}
+	alert(id+" 성공");
+	this.go("Base::frm_login.xfdl");
+}
+
+
+this.SignUpButton_onclick = function(obj:Button, e:nexacro.ClickEventInfo)
+{
+	
+	var serviceId = "회원가입";
+	var serviceUrl= SERVER_URL + "/signup";
+	var inDataset = "";
+	var outDataset ="";
+	var param= "id="+ nexacro.wrapQuote(this.IdEdit.value) +" pw="+nexacro.wrapQuote(this.PasswordEdit.value);
+	var callbacks = "fn_callack";
+	this.transaction(serviceId,serviceUrl,inDataset,outDataset,param,callbacks);
+	
+}
+
+this.LoginStatic_onclick = function(obj:Static, e:nexacro.ClickEventInfo)
+{
+	this.go("Base::frm_login.xfdl");
+}
+
+
+]]></Script>
+  </Form>
+</FDL>

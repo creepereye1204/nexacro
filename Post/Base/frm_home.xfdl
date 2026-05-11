@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FDL version="1.5">
+  <TypeDefinition url="..\default_typedef.xml"/>
+  <Form id="frm_home" left="0" top="0" width="1024" height="768" titletext="New Form" onload="frm_home_onload">
+    <Layouts>
+      <Layout>
+        <ImageViewer id="HomeBackgound" taborder="0" left="0%" top="-1" height="768" width="1024" image="URL('https://i.ytimg.com/vi/tA07T3XXp4w/hq720.jpg?sqp=-oaymwE7CK4FEIIDSFryq4qpAy0IARUAAAAAGAElAADIQj0AgKJD8AEB-AH-CYAC0AWKAgwIABABGGUgUyhGMA8=&amp;rs=AOn4CLCj7ZK9808KkMHJxgcsVHphR9F69A')" stretch="fit"/>
+        <Grid id="Posts" taborder="1" left="158" top="150" width="708" height="467" style="opacity:80;" binddataset="Post" oncellclick="Posts_oncellclick">
+          <Formats>
+            <Format id="default">
+              <Columns>
+                <Column size="80"/>
+                <Column size="74"/>
+                <Column size="56"/>
+                <Column size="63"/>
+                <Column size="434"/>
+              </Columns>
+              <Rows>
+                <Row size="24" band="head"/>
+                <Row size="24"/>
+              </Rows>
+              <Band id="head">
+                <Cell text="id"/>
+                <Cell col="1" text="title"/>
+                <Cell col="2" text="date"/>
+                <Cell col="3" text="time"/>
+                <Cell col="4" text="preview"/>
+              </Band>
+              <Band id="body">
+                <Cell text="bind:id"/>
+                <Cell col="1" text="bind:title"/>
+                <Cell col="2" text="bind:date"/>
+                <Cell col="3" text="bind:time"/>
+                <Cell col="4" text="bind:preview"/>
+              </Band>
+            </Format>
+          </Formats>
+        </Grid>
+        <Edit id="SearchEdit" taborder="2" left="15.53%" top="92" right="25.88%" height="50" oneditclick="SearchEdit_oneditclick" onkeydown="SearchEdit_onkeydown"/>
+        <Button id="SearchButton" taborder="3" text="Search" left="74.71%" top="92" right="15.43%" height="50" onclick="SearchButton_onclick"/>
+        <Button id="WriteButton" taborder="4" text="Write" onclick="WriteButton_onclick" left="88.87%" top="1.82%" height="50" width="98"/>
+      </Layout>
+    </Layouts>
+    <Objects>
+      <Dataset id="Post">
+        <ColumnInfo>
+          <ConstColumn id="id" type="INT" size="30" value=""/>
+          <ConstColumn id="title" type="STRING" size="15" value=""/>
+          <ConstColumn id="date" type="DATE" size="30" value=""/>
+          <ConstColumn id="time" type="TIME" size="30" value=""/>
+          <ConstColumn id="preview" type="STRING" size="60" value=""/>
+        </ColumnInfo>
+      </Dataset>
+    </Objects>
+    <Script type="xscript5.0"><![CDATA[var SERVER_URL = "http://127.0.0.1:8000";
+var Post = this.Post;
+this.frm_home_onload = function(obj:Form, e:nexacro.LoadEventInfo)
+{
+	var serviceId    = "전체 검색";
+    var serviceIdUrl   = SERVER_URL + "/posts";
+    var inDataset     = ""; 
+    var outDataset    = "Post=Post"; 
+    var param    = "";
+    var callbacks = "fn_callback";
+
+    this.transaction(serviceId, serviceIdUrl, inDataset, outDataset, param, callbacks);
+}
+
+this.fn_callback = function(id, code, message)
+{
+	if(code<0){
+		alert(id + " 오류 [" + code+"]" + message);
+		return;
+	}
+	alert(id + " 성공");
+	
+	
+}
+
+
+this.SearchButton_onclick = function(obj:Button, e:nexacro.ClickEventInfo)
+{
+	var text = this.SearchEdit.value;
+    
+    if (text) {
+        this.Post.filter("String(id).indexOf('" + text + "') >= 0 || " +
+                         "title.indexOf('" + text + "') >= 0 || " +
+                         "content.indexOf('" + text + "') >= 0");
+    } else {
+        this.Post.filter("");
+    }
+}
+
+
+
+
+
+this.WriteButton_onclick = function(obj:Button, e:nexacro.ClickEventInfo)
+{
+	this.go("Base::frm_write.xfdl")
+}
+
+this.Posts_oncellclick = function(obj:Grid, e:nexacro.GridClickEventInfo)
+{
+	var postId = this.Post.getColumn(e.row, "id");
+	application.gv_postId=postId;
+    this.go("Base::frm_post.xfdl")
+    
+    
+}
+
+this.SearchEdit_onkeydown = function(obj:Edit, e:nexacro.KeyEventInfo)
+{
+	if(e.keycode==13){
+	var text = this.SearchEdit.value;
+    
+    if (text) {
+        this.Post.filter("String(id).indexOf('" + text + "') >= 0 || " +
+                         "title.indexOf('" + text + "') >= 0 || " +
+                         "content.indexOf('" + text + "') >= 0");
+    } else {
+        this.Post.filter("");
+    }
+    }
+}
+]]></Script>
+  </Form>
+</FDL>

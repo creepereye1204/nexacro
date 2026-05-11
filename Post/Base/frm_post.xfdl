@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FDL version="1.5">
+  <TypeDefinition url="..\default_typedef.xml"/>
+  <Form id="frm_write" left="0" top="0" width="1024" height="768" titletext="New Form" onload="frm_post_onload">
+    <Layouts>
+      <Layout>
+        <ImageViewer id="WriteBackGround" taborder="0" left="0%" top="0" height="768" width="1024" image="URL('https://image.fnnews.com/resource/media/image/2022/11/24/202211241422160120_l.png')" stretch="fit"/>
+        <GroupBox id="WriteForm" taborder="1" left="18.26%" top="84" height="600" width="650" onlbuttondown="WriteForm_onlbuttondown"/>
+        <TextArea id="ContentForm" taborder="2" left="31.25%" top="280" right="31.25%" height="300" oneditclick="TextArea00_oneditclick" readonly="true"/>
+        <Edit id="TitleForm" taborder="3" left="31.35%" top="184" right="31.35%" height="48" readonly="true"/>
+        <Button id="ReturnButton" taborder="4" text="Return" left="43.55%" top="600" right="43.55%" height="70" onclick="ReturnButton_onclick"/>
+      </Layout>
+    </Layouts>
+    <Objects>
+      <Dataset id="DetailPost">
+        <ColumnInfo>
+          <ConstColumn id="title" type="STRING" size="30" value=""/>
+          <ConstColumn id="content" type="STRING" size="1024" value=""/>
+        </ColumnInfo>
+      </Dataset>
+    </Objects>
+    <Bind>
+      <BindItem id="item0" compid="TitleForm" propid="value" datasetid="DetailPost" columnid="title"/>
+      <BindItem id="item1" compid="ContentForm" propid="value" datasetid="DetailPost" columnid="content"/>
+    </Bind>
+    <Script type="xscript5.0"><![CDATA[const SERVER_URL = "http://127.0.0.1:8000";
+
+
+
+
+
+this.fn_callback = function(id, code, message)
+{
+    if (code < 0) {
+        this.alert(message);
+        return;
+    }
+    
+    
+	
+    
+}
+
+
+
+
+
+this.frm_post_onload = function(obj:Form, e:nexacro.LoadEventInfo)
+{
+	var postId = application.gv_postId;
+    
+    var serviceId = "read_post";
+    var serviceUrl = SERVER_URL + "/posts/read"; 
+    var inDataset  = ""; 
+    var outDataset = "DetailPost=DetailPost"; 
+    var param = "postId=" + nexacro.wrapQuote(postId);
+    var callbacks = "fn_callback";
+
+    this.transaction(serviceId, serviceUrl, inDataset, outDataset, param, callbacks);
+}
+
+this.ReturnButton_onclick = function(obj:Button, e:nexacro.ClickEventInfo)
+{
+	this.go("Base::frm_home.xfdl");
+}
+]]></Script>
+  </Form>
+</FDL>

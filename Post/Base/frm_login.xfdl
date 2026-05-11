@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FDL version="1.5">
+  <TypeDefinition url="..\default_typedef.xml"/>
+  <Form id="frm_login" left="0" top="0" width="1024" height="768" titletext="New Form" style="color:#46413dff;" onload="frm_login_onload">
+    <Layouts>
+      <Layout>
+        <ImageViewer id="LoginBackground" taborder="0" left="0%" top="0" height="768" image="URL('https://image.newstomato.com/ibtomato/2024/06/20240620_155937_497711326.png')" stretch="fit" width="1024" style="font:14 Dotum;" onclick="LoginBackground_onclick"/>
+        <Edit id="IdEdit" taborder="1" left="30.47%" top="265" height="80" width="400" displaynulltext="아이디 입력" style="font:14 Dotum;"/>
+        <Edit id="PasswordEdit" taborder="2" left="30.47%" top="375" height="80" width="400" displaynulltext="비밀번호 입력" oneditclick="PasswordEdit_oneditclick" style="font:14 Dotum;" password="true"/>
+        <Button id="LoginButton" taborder="3" text="로그인" left="30.47%" top="485" height="80" width="400" style="font:14 Dotum;" onclick="LoginButton_onclick"/>
+        <Static id="SignUpStatic" taborder="4" text="회원가입" left="30.66%" top="573" right="60.55%" height="26" style="font:14 Dotum;" onclick="SignUpStatic_onclick"/>
+        <CheckBox id="RemberMeCheckBox" taborder="5" text="로그인 정보 저장" left="52.44%" top="577" right="30.47%" height="18" onclick="RemberMeCheckBox_onclick" style="font:14 Dotum;"/>
+      </Layout>
+    </Layouts>
+    <Script type="xscript5.0"><![CDATA[const SERVER_URL = "http://127.0.0.1:8000";
+
+
+
+this.LoginButton_onclick = function(obj:Button, e:nexacro.ClickEventInfo)
+{
+	var serviceId = "로그인";
+	var serviceUrl= SERVER_URL + "/login";
+	var inDataset = "";
+	var outDataset ="";
+	var param= "id="+ nexacro.wrapQuote(this.IdEdit.value) +" pw="+nexacro.wrapQuote(this.PasswordEdit.value);
+	var callbacks = "fn_callback";
+	this.transaction(serviceId,serviceUrl,inDataset,outDataset,param,callbacks);
+	
+}
+
+this.fn_callback = function(id,code,message)
+{
+	if(code<0){
+		alert(id+ " 오류 [" + code+"]" + message);
+		return;
+	}
+	alert(id+ " 성공");
+	switch(id){
+		case "로그인":
+			var id =  this.IdEdit.value;
+			var password =  this.PasswordEdit.value;
+			var isSave = this.RemberMeCheckBox.value;
+			if(isSave){
+				application.setPrivateProfile("ID", id);
+				application.setPrivateProfile("PASSWORD", password);
+				application.setPrivateProfile("SAVE", "Y");
+			} else {
+				application.setPrivateProfile("ID", "");
+				application.setPrivateProfile("PASSWORD", "");
+				application.setPrivateProfile("SAVE", "N");
+			}
+			
+			this.go("Base::frm_home.xfdl");
+			break;
+		default:
+			this.go("Base::frm_login.xfdl");
+			break;
+	}
+}
+
+
+this.SignUpStatic_onclick = function(obj:Static, e:nexacro.ClickEventInfo)
+{
+	this.go("Base::frm_signup.xfdl");
+}
+
+
+
+
+
+this.frm_login_onload = function(obj:Form, e:nexacro.LoadEventInfo)
+{
+	var isSave = application.getPrivateProfile("SAVE") || "N";
+	
+    if (isSave === "Y"){
+		var id = application.getPrivateProfile("ID") || "";
+		var password = application.getPrivateProfile("PASSWORD") || "";
+	
+		this.IdEdit.set_value(id);
+		this.PasswordEdit.set_value(password);
+		this.RemberMeCheckBox.set_value(true);
+    }
+}
+
+
+
+this.RemberMeCheckBox_onclick = function(obj:CheckBox, e:nexacro.ClickEventInfo)
+{
+	var isSave = obj.value;
+	application.setPrivateProfile("SAVE","Y" ? isSave : "N");
+}
+]]></Script>
+  </Form>
+</FDL>
