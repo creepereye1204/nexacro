@@ -3,19 +3,57 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 import xml.etree.ElementTree as ET
 import aiosqlite
-import os
+from faker import Faker
+import time
+
+    
+
 from datetime import datetime
 app = FastAPI()
+fake = Faker('ko_KR') 
 
-app.add_middleware(SessionMiddleware, secret_key=os.urandom(24).hex())
+def create_random_post():
+    title = fake.sentence()      
+    content = fake.text()       
+    
+    # datetime 객체 생성
+    dt = fake.date_time()      
+    
+    return {
+        "제목": title,
+        "날짜": dt.strftime('%Y-%m-%d'),
+        "시간": dt.strftime('%H:%M:%S'), 
+        "내용": content,
+        "프리뷰" :content[:50].ljust(50,'.')
+    }
+
+
+
+
+origins = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000"
+]
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=origins,     
+    allow_credentials=True,    
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(
+    SessionMiddleware, 
+    secret_key="fixed_secret_key_for_session", 
+    same_site="none",                           
+    https_only=False
+)
+
+
 
 DB_PATH = "example.db"
 
@@ -34,6 +72,13 @@ async def startup():
             )
         """)
         await db.execute("INSERT OR IGNORE INTO users VALUES ('admin', '1234')")
+        
+        # for post in [create_random_post() for _ in range(20000)]:
+        #     await db.execute(
+        #         "INSERT OR IGNORE INTO posts (title, date, time, content, preview) VALUES (?,?,?,?,?)", 
+        #         (post['제목'], post['날짜'], post['시간'], post['내용'], post['프리뷰'])
+        #     )
+
         await db.commit()
 
 def get_nexacro_value(xml_str: str, target_id: str):
@@ -78,6 +123,7 @@ async def login(request: Request):
 
 @app.api_route("/posts", methods=["GET", "POST"])
 async def select_posts(request: Request):
+    start =  time.time()
     if not request.session.get('is_logged_in'):
         return make_nexacro_xml_response(create_error_xml(-2, "세션 만료"))
 
@@ -112,6 +158,8 @@ async def select_posts(request: Request):
         <Rows>{rows_xml}</Rows>
     </Dataset>
 </Root>"""
+    end =time.time()
+    print(end-start)
     return make_nexacro_xml_response(xml_data)
 
 @app.post("/posts/save")
